@@ -52,4 +52,33 @@ export const scrapegraphApi = {
     if (error) return { success: false, error: error.message };
     return data;
   },
+
+  /** Enrich existing places with real coordinates (Nominatim) + photo/hours (ScrapeGraph).
+   *  With no args it backfills places missing coordinates; pass placeIds to target specific rows. */
+  async enrichPlaces(options?: { placeIds?: string[]; limit?: number }): Promise<ScrapegraphResponse> {
+    const { data, error } = await supabase.functions.invoke('enrich-place', {
+      body: options ?? {},
+    });
+    if (error) return { success: false, error: error.message };
+    return data;
+  },
+
+  /** Bulk-import real places from OpenStreetMap (free) for a given category + area. */
+  async importPlaces(options: { category: string; area: string; radius?: number }): Promise<ScrapegraphResponse> {
+    const { data, error } = await supabase.functions.invoke('import-places', {
+      body: options,
+    });
+    if (error) return { success: false, error: error.message };
+    return data;
+  },
+
+  /** Opt-in live web search (ScrapeGraph) for long-tail queries the DB doesn't cover.
+   *  Costs ScrapeGraph credits, so only call on explicit user action. */
+  async webSearch(options: { query: string; area?: string; locality?: string }): Promise<ScrapegraphResponse & { results?: any[]; summary?: string }> {
+    const { data, error } = await supabase.functions.invoke('web-search', {
+      body: options,
+    });
+    if (error) return { success: false, error: error.message };
+    return data;
+  },
 };

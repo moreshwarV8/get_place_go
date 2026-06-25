@@ -1,3 +1,14 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Build output
+dist
+dist-ssr
+build
+*.local
+
 # Logs
 logs
 *.log
@@ -7,10 +18,20 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Environment variables (NEVER commit real keys — use .env.example instead)
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+
+# Supabase CLI local state
+supabase/.temp/
+supabase/.branches/
+supabase/.env
+
+# Testing
+coverage
 
 # Editor directories and files
 .vscode/*
@@ -22,3 +43,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# OS
+Thumbs.db
+
+# Local AI working notes (kept out of the repo)
+CLAUDE.md

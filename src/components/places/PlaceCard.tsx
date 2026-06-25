@@ -1,8 +1,11 @@
-import { Heart, Star, MapPin, Wifi, Zap, Volume2 } from 'lucide-react';
+import { Heart, Star, MapPin, Wifi, Zap, Volume2, Clock, Navigation } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Place, VIBE_INFO, NOISE_LABELS, PRICE_LABELS } from '@/lib/types';
+import { getOpenStatus } from '@/lib/openingHours';
+import { haversineKm, formatDistance } from '@/lib/geo';
 
 interface PlaceCardProps {
   place: Place;
@@ -10,13 +13,23 @@ interface PlaceCardProps {
   similarity?: number;
   onFavorite?: (placeId: string) => void;
   isFavorite?: boolean;
+  userLocation?: { lat: number; lng: number } | null;
 }
 
-export function PlaceCard({ place, explanation, similarity, onFavorite, isFavorite }: PlaceCardProps) {
+export function PlaceCard({ place, explanation, similarity, onFavorite, isFavorite, userLocation }: PlaceCardProps) {
+  const navigate = useNavigate();
   const vibeInfo = place.primary_vibe ? VIBE_INFO[place.primary_vibe] : null;
-  
+  const openStatus = getOpenStatus(place.opening_hours);
+  const distanceKm =
+    userLocation && place.latitude != null && place.longitude != null
+      ? haversineKm(userLocation.lat, userLocation.lng, place.latitude, place.longitude)
+      : null;
+
   return (
-    <Card className="group overflow-hidden hover:shadow-medium transition-all duration-300 animate-fade-in">
+    <Card
+      onClick={() => navigate(`/place/${place.slug}`)}
+      className="group overflow-hidden hover:shadow-medium transition-all duration-300 animate-fade-in cursor-pointer"
+    >
       {/* Image */}
       <div className="relative h-48 overflow-hidden bg-muted">
         {place.cover_image_url ? (
@@ -46,11 +59,31 @@ export function PlaceCard({ place, explanation, similarity, onFavorite, isFavori
             className={`absolute top-3 right-3 w-9 h-9 rounded-full glass ${
               isFavorite ? 'text-destructive' : 'text-foreground'
             }`}
-            onClick={() => onFavorite(place.id)}
+            onClick={(e) => { e.stopPropagation(); onFavorite(place.id); }}
           >
             <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
           </Button>
         )}
+
+        {/* Live-context badges (open-now / distance) — the "GPT can't do this" layer */}
+        <div className="absolute bottom-3 left-3 flex flex-wrap gap-1.5">
+          {openStatus.state !== 'unknown' && (
+            <span className={`px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 ${
+              openStatus.state === 'open' ? 'bg-green-600 text-white' : 'bg-gray-700/90 text-white'
+            }`}>
+              <Clock className="w-3 h-3" />
+              {openStatus.state === 'open'
+                ? (openStatus.closesAt ? `Open · till ${openStatus.closesAt}` : openStatus.text)
+                : 'Closed'}
+            </span>
+          )}
+          {distanceKm != null && (
+            <span className="px-2 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 glass">
+              <Navigation className="w-3 h-3" />
+              {formatDistance(distanceKm)}
+            </span>
+          )}
+        </div>
         
         {/* Price Badge */}
         <div className="absolute bottom-3 right-3 px-2 py-1 rounded-lg glass text-sm font-semibold">

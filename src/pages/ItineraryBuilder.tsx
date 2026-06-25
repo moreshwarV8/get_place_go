@@ -52,6 +52,7 @@ export default function ItineraryBuilder() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [planOverview, setPlanOverview] = useState<{ summary?: string; tips?: string } | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -181,26 +182,27 @@ export default function ItineraryBuilder() {
       if (error) throw error;
 
       if (data.suggestions) {
-        toast({
-          title: 'AI Suggestions Ready!',
-          description: data.summary || 'Check out the recommended places below',
+        setPlanOverview({ summary: data.summary, tips: data.tips });
+
+        setItineraryPlaces((prev) => {
+          const merged = [...prev];
+          for (const s of data.suggestions) {
+            const place = availablePlaces.find((p) => p.id === s.id);
+            if (place && !merged.some((ip) => ip.place_id === place.id)) {
+              const activity = s.duration ? `${s.activity || ''} (${s.duration})` : (s.activity || '');
+              const notes = [activity, s.reason, s.travel_note].filter(Boolean).join(' · ');
+              merged.push({ place_id: place.id, place, time_slot: s.suggested_time || '', notes });
+            }
+          }
+          // Order the day chronologically (places without a time go last).
+          merged.sort((a, b) => (a.time_slot || '99:99').localeCompare(b.time_slot || '99:99'));
+          return merged;
         });
 
-        // Add suggested places
-        for (const suggestion of data.suggestions) {
-          const place = availablePlaces.find((p) => p.id === suggestion.id);
-          if (place && !itineraryPlaces.some((ip) => ip.place_id === place.id)) {
-            setItineraryPlaces((prev) => [...prev, {
-              place_id: place.id,
-              place,
-              time_slot: suggestion.suggested_time || '',
-              notes: suggestion.reason || ''
-            }]);
-          }
-        }
+        toast({ title: 'Day plan ready!', description: data.summary || 'Your structured itinerary is below.' });
       }
     } catch (err) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate suggestions' });
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to generate the plan' });
     } finally {
       setIsGenerating(false);
     }
@@ -308,6 +310,21 @@ export default function ItineraryBuilder() {
             </Button>
           </div>
 
+          {/* AI Day-Plan Overview */}
+          {planOverview && (planOverview.summary || planOverview.tips) && (
+            <Card className="mb-6 border-primary/30 bg-primary/5">
+              <CardContent className="p-4 space-y-2">
+                <div className="flex items-center gap-2 text-primary font-semibold">
+                  <Sparkles className="w-4 h-4" /> Your Day Plan
+                </div>
+                {planOverview.summary && <p className="text-sm text-foreground">{planOverview.summary}</p>}
+                {planOverview.tips && (
+                  <p className="text-sm text-muted-foreground"><span className="font-medium">Tip:</span> {planOverview.tips}</p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Places List */}
           {itineraryPlaces.length === 0 ? (
             <Card className="border-dashed">
@@ -346,6 +363,9 @@ export default function ItineraryBuilder() {
                                 <Badge variant="secondary" className="mt-2 text-xs">
                                   {VIBE_INFO[item.place.primary_vibe].emoji} {VIBE_INFO[item.place.primary_vibe].label}
                                 </Badge>
+                              )}
+                              {item.notes && (
+                                <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{item.notes}</p>
                               )}
                             </div>
 

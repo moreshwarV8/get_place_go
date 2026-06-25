@@ -11,14 +11,16 @@ Discover places based on *vibe*, not just ratings. AI-powered recommendations fo
 ```bash
 # Clone and install
 git clone <YOUR_GIT_URL>
-cd get-place-go
+cd get_place_go
 npm install
 
 # Start development server
 npm run dev
 
-# Open http://localhost:5173
+# Open http://localhost:8080
 ```
+
+Create a `.env` file in the project root with your own Supabase project's `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and `VITE_SUPABASE_PROJECT_ID` (Settings → API in your Supabase dashboard).
 
 ---
 
@@ -40,14 +42,15 @@ npm run dev
 - **TanStack Query** for data fetching
 - **React Router v6** for navigation
 
-### Backend (Lovable Cloud)
+### Backend (self-hosted Supabase)
 - **PostgreSQL** with **pgvector** for embeddings
+- **Supabase Auth** + **Storage**
 - **Supabase Edge Functions** (Deno runtime)
 - **Row Level Security (RLS)**
 
 ### AI/ML
-- **Lovable AI Gateway** (Gemini/GPT models)
-- **Semantic search** with vector embeddings
+- LLM-powered itinerary generation and place-image generation (provider migration to OpenRouter in progress — see `CLAUDE.md` for current status)
+- **Semantic search** with vector embeddings (vibe-search currently uses keyword/attribute scoring; embedding-based ranking is a planned optimization)
 
 ---
 
@@ -96,31 +99,27 @@ npm run lint       # Lint code
 
 ## How can I edit this code?
 
-**Use Lovable**
-Simply visit the Lovable Project and start prompting. Changes made via Lovable will be committed automatically to this repo.
+Clone the repo and work locally in your own IDE. The only requirement is having Node.js & npm installed — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 
-**Use your preferred IDE**
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-**Edit a file directly in GitHub**
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+git clone <YOUR_GIT_URL>
+cd get_place_go
+npm install
+npm run dev
+```
 
 ---
 
 ## How can I deploy this project?
 
-Simply open Lovable and click on Share -> Publish.
+The frontend is a static Vite build, deployable to any static host that supports SPA routing (e.g. Vercel, Netlify). Build it with:
+
+```bash
+npm run build
+```
+
+Edge functions (`supabase/functions/`) are deployed independently via the Supabase CLI (`supabase functions deploy <name>`) or the Supabase dashboard.
 
 ## Can I connect a custom domain?
 
-Yes! Navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
-
----
-
-*Built with ❤️ using Lovable*
+Yes — through whichever hosting provider you deploy the frontend to (e.g. Vercel/Netlify project settings).

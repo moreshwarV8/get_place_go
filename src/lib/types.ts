@@ -12,9 +12,11 @@ export interface Place {
   description: string | null;
   address: string;
   area: Area;
+  locality?: string | null;
   latitude: number | null;
   longitude: number | null;
   google_place_id: string | null;
+  opening_hours?: { raw?: string } | Record<string, unknown> | null;
   
   // Vibe attributes
   noise_level: NoiseLevel;

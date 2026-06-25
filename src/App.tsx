@@ -7,6 +7,9 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Explore from "./pages/Explore";
+import PlaceDetail from "./pages/PlaceDetail";
+import Concierge from "./pages/Concierge";
+import Profile from "./pages/Profile";
 import Vibes from "./pages/Vibes";
 import Itineraries from "./pages/Itineraries";
 import ItineraryBuilder from "./pages/ItineraryBuilder";
@@ -27,6 +30,9 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/explore" element={<Explore />} />
+            <Route path="/place/:slug" element={<PlaceDetail />} />
+            <Route path="/concierge" element={<Concierge />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="/vibes" element={<Vibes />} />
             <Route path="/itineraries" element={<Itineraries />} />
             <Route path="/itineraries/:id" element={<ItineraryBuilder />} />

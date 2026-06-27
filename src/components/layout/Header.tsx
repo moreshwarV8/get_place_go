@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { MapPin, Menu, X, User, LogOut, Heart, Globe, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +14,7 @@ import {
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -49,7 +51,7 @@ export function Header() {
             <Link to="/itineraries" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
               Itineraries
             </Link>
-            {user && (
+            {isAdmin && (
               <Link to="/admin/scrape" className="text-muted-foreground hover:text-foreground transition-colors font-medium flex items-center gap-1">
                 <Globe className="w-3.5 h-3.5" />
                 Scraper
@@ -136,7 +138,7 @@ export function Header() {
               >
                 Itineraries
               </Link>
-              {user && (
+              {isAdmin && (
                 <Link
                   to="/admin/scrape"
                   className="text-muted-foreground hover:text-foreground transition-colors font-medium flex items-center gap-1"

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { requireAdmin, requireAuth } from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -128,6 +129,18 @@ async function downloadAndStore(supabase: any, imageUrl: string, slug: string): 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Targeted single-place enrichment (lazy photo) is allowed for any signed-in user;
+  // the bulk backfill path (no placeIds) is admin-only. Clone the request so the
+  // handler below can still read the body itself.
+  {
+    const probe = await req.clone().json().catch(() => ({}));
+    const targeted = Array.isArray(probe.placeIds) && probe.placeIds.length > 0;
+    const denied = targeted
+      ? await requireAuth(req, corsHeaders)
+      : await requireAdmin(req, corsHeaders);
+    if (denied) return denied;
   }
 
   try {

@@ -12,6 +12,7 @@ import { Loader2, Globe, Database, Sparkles, CheckCircle, AlertCircle, MapPin } 
 import { useToast } from '@/hooks/use-toast';
 import { scrapegraphApi } from '@/lib/api/scrapegraph';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { Navigate } from 'react-router-dom';
 
 type ScrapeResult = {
@@ -29,7 +30,8 @@ type SmartScrapeResult = {
 };
 
 export default function AdminScrape() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: roleLoading } = useIsAdmin();
   const { toast } = useToast();
 
   // Scrape Places state
@@ -60,8 +62,23 @@ export default function AdminScrape() {
   const [importAllProgress, setImportAllProgress] = useState('');
   const [importAllResult, setImportAllResult] = useState<{ inserted: number; areasDone: number; errors: number } | null>(null);
 
+  // Wait for both auth + role checks before deciding, to avoid a flash redirect on refresh.
+  if (authLoading || roleLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Signed in but not an admin → bounce to home. The edge functions enforce this
+  // server-side too, so hiding the page is defense-in-depth, not the only guard.
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
   }
 
   const handleScrapePlaces = async (e: React.FormEvent) => {

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MapPin, Menu, X, User, LogOut, Heart, Globe } from 'lucide-react';
+import { MapPin, Menu, X, User, LogOut, Heart, Globe, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +14,7 @@ import {
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -36,6 +38,10 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
+            <Link to="/concierge" className="text-primary hover:text-primary/80 transition-colors font-semibold flex items-center gap-1">
+              <Sparkles className="w-4 h-4" />
+              Ask AI
+            </Link>
             <Link to="/explore" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
               Explore
             </Link>
@@ -45,7 +51,7 @@ export function Header() {
             <Link to="/itineraries" className="text-muted-foreground hover:text-foreground transition-colors font-medium">
               Itineraries
             </Link>
-            {user && (
+            {isAdmin && (
               <Link to="/admin/scrape" className="text-muted-foreground hover:text-foreground transition-colors font-medium flex items-center gap-1">
                 <Globe className="w-3.5 h-3.5" />
                 Scraper
@@ -104,6 +110,14 @@ export function Header() {
           <div className="md:hidden py-4 border-t border-border animate-fade-in">
             <nav className="flex flex-col gap-4">
               <Link
+                to="/concierge"
+                className="text-primary font-semibold flex items-center gap-1"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Sparkles className="w-4 h-4" />
+                Ask AI
+              </Link>
+              <Link
                 to="/explore"
                 className="text-muted-foreground hover:text-foreground transition-colors font-medium"
                 onClick={() => setMobileMenuOpen(false)}
@@ -124,7 +138,7 @@ export function Header() {
               >
                 Itineraries
               </Link>
-              {user && (
+              {isAdmin && (
                 <Link
                   to="/admin/scrape"
                   className="text-muted-foreground hover:text-foreground transition-colors font-medium flex items-center gap-1"

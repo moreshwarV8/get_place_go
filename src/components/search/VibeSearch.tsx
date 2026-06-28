@@ -1,14 +1,27 @@
 import { useState } from 'react';
-import { Search, Sparkles, MapPin, Volume2 } from 'lucide-react';
+import { Search, Sparkles, MapPin, Volume2, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { VIBE_INFO, AREA_INFO, type VibeCategory, type Area } from '@/lib/types';
+import { VIBE_INFO, AREA_INFO, PRICE_LABELS, type VibeCategory, type Area, type PriceRange } from '@/lib/types';
+
+interface SearchFilters {
+  vibe?: VibeCategory;
+  area?: Area;
+  maxPrice?: PriceRange;
+}
 
 interface VibeSearchProps {
-  onSearch: (query: string, filters: { vibe?: VibeCategory; area?: Area }) => void;
+  onSearch: (query: string, filters: SearchFilters) => void;
   isLoading?: boolean;
 }
+
+const BUDGET_TIERS: { tier: PriceRange; hint: string }[] = [
+  { tier: 'budget', hint: 'Budget' },
+  { tier: 'moderate', hint: 'Mid' },
+  { tier: 'premium', hint: 'Premium' },
+  { tier: 'luxury', hint: 'Luxury' },
+];
 
 const QUICK_PROMPTS = [
   { text: 'Quiet cafe to study', vibe: 'work_study' as VibeCategory },
@@ -21,17 +34,18 @@ export function VibeSearch({ onSearch, isLoading }: VibeSearchProps) {
   const [query, setQuery] = useState('');
   const [selectedVibe, setSelectedVibe] = useState<VibeCategory | undefined>();
   const [selectedArea, setSelectedArea] = useState<Area | undefined>();
+  const [maxPrice, setMaxPrice] = useState<PriceRange | undefined>();
 
   const handleSearch = () => {
     if (query.trim()) {
-      onSearch(query, { vibe: selectedVibe, area: selectedArea });
+      onSearch(query, { vibe: selectedVibe, area: selectedArea, maxPrice });
     }
   };
 
   const handleQuickPrompt = (prompt: typeof QUICK_PROMPTS[0]) => {
     setQuery(prompt.text);
     setSelectedVibe(prompt.vibe);
-    onSearch(prompt.text, { vibe: prompt.vibe, area: selectedArea });
+    onSearch(prompt.text, { vibe: prompt.vibe, area: selectedArea, maxPrice });
   };
 
   return (
@@ -97,6 +111,30 @@ export function VibeSearch({ onSearch, isLoading }: VibeSearchProps) {
               onClick={() => setSelectedArea(selectedArea === key ? undefined : key)}
             >
               {info.label}
+            </Badge>
+          ))}
+        </div>
+
+        {/* Budget Filter (optional — skippable) */}
+        <div className="flex items-center gap-2 w-full justify-center pt-1">
+          <Wallet className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          <span className="text-xs text-muted-foreground mr-1">Max budget:</span>
+          <Badge
+            variant={maxPrice === undefined ? 'default' : 'outline'}
+            className="cursor-pointer transition-all hover:scale-105"
+            onClick={() => setMaxPrice(undefined)}
+          >
+            Any
+          </Badge>
+          {BUDGET_TIERS.map(({ tier, hint }) => (
+            <Badge
+              key={tier}
+              variant={maxPrice === tier ? 'default' : 'outline'}
+              className={`cursor-pointer transition-all hover:scale-105 ${maxPrice === tier ? 'bg-primary text-primary-foreground' : ''}`}
+              onClick={() => setMaxPrice(maxPrice === tier ? undefined : tier)}
+              title={`${hint} and below`}
+            >
+              {PRICE_LABELS[tier]}
             </Badge>
           ))}
         </div>

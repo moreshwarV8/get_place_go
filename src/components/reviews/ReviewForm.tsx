@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Database } from '@/integrations/supabase/types';
+import { PlaceMap } from '@/components/places/PlaceMap';
 
 type VibeCategory = Database['public']['Enums']['vibe_category'];
 
@@ -264,16 +265,13 @@ export function ReviewForm() {
                   </div>
                 </div>
                 
-                {/* Map Preview */}
+                {/* Map Preview (free Leaflet + OpenStreetMap) */}
                 {selectedPlace.latitude && selectedPlace.longitude && (
                   <div className="mt-3 rounded-lg overflow-hidden border h-32 bg-muted">
-                    <iframe
-                      title="Place location"
-                      width="100%"
-                      height="100%"
-                      style={{ border: 0 }}
-                      loading="lazy"
-                      src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6cE3rQlW2K7fQh4&q=${selectedPlace.latitude},${selectedPlace.longitude}&zoom=15`}
+                    <PlaceMap
+                      latitude={Number(selectedPlace.latitude)}
+                      longitude={Number(selectedPlace.longitude)}
+                      name={selectedPlace.name}
                     />
                   </div>
                 )}

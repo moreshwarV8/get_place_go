@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,8 +7,6 @@
 /* Get Place Go - Modern & Vibrant Design System
    Inspired by Pune's energy - warm oranges, deep teals, and lush greens
 */
-
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 
 @layer base {
   :root {
@@ -51,9 +51,21 @@
     --radius: 0.75rem;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(16 85% 58%) 0%, hsl(35 85% 55%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(175 50% 35%) 0%, hsl(195 60% 45%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(16 85% 58% / 0.1) 0%, hsl(175 50% 35% / 0.1) 100%);
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(16 85% 58%) 0%,
+      hsl(35 85% 55%) 100%
+    );
+    --gradient-secondary: linear-gradient(
+      135deg,
+      hsl(175 50% 35%) 0%,
+      hsl(195 60% 45%) 100%
+    );
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(16 85% 58% / 0.1) 0%,
+      hsl(175 50% 35% / 0.1) 100%
+    );
 
     /* Shadows */
     --shadow-soft: 0 4px 20px -4px hsl(220 25% 12% / 0.08);
@@ -125,11 +137,16 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: "Inter", system-ui, sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Space Grotesk", system-ui, sans-serif;
     @apply font-semibold tracking-tight;
   }
 }
@@ -207,13 +224,23 @@
 
 /* Animation keyframes */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3); }
-  50% { box-shadow: 0 0 30px -5px hsl(var(--primary) / 0.5); }
+  0%,
+  100% {
+    box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px -5px hsl(var(--primary) / 0.5);
+  }
 }
 
 .animate-float {

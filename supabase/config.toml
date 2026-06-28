@@ -1,4 +1,4 @@
-project_id = "vysuahkhxsvrroxygvww"
+project_id = "hsnhmwtbcmapcjkatwow"
 
 [functions.vibe-search]
 verify_jwt = false
@@ -10,4 +10,16 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.scrape-places]
+verify_jwt = false
+
+[functions.enrich-place]
+verify_jwt = false
+
+[functions.import-places]
+verify_jwt = false
+
+[functions.web-search]
+verify_jwt = false
+
+[functions.concierge]
 verify_jwt = false

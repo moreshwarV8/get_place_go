@@ -34,7 +34,8 @@ serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
+    const OPENROUTER_MODEL = Deno.env.get("OPENROUTER_MODEL") || "google/gemini-2.5-flash";
 
     // Verify user token
     const userSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -77,8 +78,8 @@ serve(async (req) => {
 
     const { title, description, existingPlaces } = validationResult.data;
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!OPENROUTER_API_KEY) {
+      throw new Error("OPENROUTER_API_KEY is not configured");
     }
 
     // Use service role for database queries
@@ -108,49 +109,64 @@ serve(async (req) => {
     const sanitizedTitle = title.replace(/[<>{}]/g, "").trim();
     const sanitizedDescription = description?.replace(/[<>{}]/g, "").trim() || "";
 
-    const systemPrompt = `You are a travel planning assistant for Pune, India. Help users build amazing day itineraries.
+    // Prefer places WITH coordinates so the planner can order stops by proximity.
+    const withCoords = availablePlaces.filter((p) => p.latitude != null && p.longitude != null);
+    const candidatePool = (withCoords.length >= 10 ? withCoords : availablePlaces).slice(0, 120);
 
-Given an itinerary theme and available places, suggest 3-5 places that would create a cohesive, enjoyable day trip.
+    const systemPrompt = `You are an expert day-trip planner for Pune, India. You design COMPLETE, structured day itineraries — not just a list of places.
 
-Consider:
-- Logical ordering (breakfast spots first, dinner last)
-- Travel time between areas (Baner and Koregaon Park are ~20 min apart)
-- Vibe consistency (don't mix loud party spots with quiet study cafes)
-- Variety (mix food experiences, activities, and ambiance)
+Build a realistic, flowing plan of 4-6 stops that someone can actually follow start to finish:
+- Order stops by time of day and a natural rhythm: breakfast/coffee in the morning, an activity, lunch midday, something relaxed in the afternoon, dinner/evening to close.
+- Keep stops GEOGRAPHICALLY SENSIBLE: prefer places close together (use the latitude/longitude provided) so the user isn't crossing the city repeatedly. Group nearby stops.
+- Respect the theme/vibe (e.g. a "chill" day = relaxed, quiet, unhurried; avoid loud party spots).
+- For each stop give: a suggested start time, a realistic duration, what to DO there (the activity), and why it fits.
+- Add a short travel hint between consecutive stops when areas differ.
+- Be warm and practical.`;
 
-Be enthusiastic and provide practical suggestions!`;
+    const userPrompt = `Plan this day: "${sanitizedTitle}"
+${sanitizedDescription ? `Notes from user: ${sanitizedDescription}` : ""}
+${existingPlaces.length > 0 ? `Already chosen (build around these, don't repeat): ${existingPlaces.join(", ")}` : ""}
 
-    const userPrompt = `Itinerary: "${sanitizedTitle}"
-${sanitizedDescription ? `Description: ${sanitizedDescription}` : ""}
-${existingPlaces.length > 0 ? `Already added: ${existingPlaces.join(", ")}` : "No places added yet."}
-
-Available places to suggest from:
-${JSON.stringify(availablePlaces.map(p => ({
+Choose ONLY from these real places (id, name, area, coords, vibe, etc.):
+${JSON.stringify(candidatePool.map(p => ({
   id: p.id,
   name: p.name,
   area: p.area,
+  lat: p.latitude,
+  lng: p.longitude,
   primary_vibe: p.primary_vibe,
   noise_level: p.noise_level,
+  price_range: p.price_range,
   tags: p.tags,
-  description: p.description
 })), null, 2)}
 
-Return JSON:
+Return ONLY JSON in this exact shape:
 {
+  "summary": "1-2 sentences describing the day you've planned",
+  "tips": "1 short practical tip (what to carry, best timing, etc.)",
   "suggestions": [
-    { "id": "place-uuid", "suggested_time": "10:00", "reason": "Brief reason" }
-  ],
-  "summary": "A sentence about your suggestions"
-}`;
+    {
+      "id": "place-uuid-from-the-list",
+      "suggested_time": "09:30",
+      "duration": "1 hour",
+      "activity": "What to do here, e.g. 'Relaxed breakfast & coffee'",
+      "reason": "Why this fits the plan",
+      "travel_note": "e.g. '~10 min to the next stop' or '' if same area"
+    }
+  ]
+}
+Order suggestions chronologically by suggested_time.`;
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://getplacego.app",
+        "X-Title": "Get Place Go",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: OPENROUTER_MODEL,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
@@ -166,6 +182,10 @@ Return JSON:
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+      // Log the real OpenRouter error server-side (visible in function logs) but
+      // don't leak upstream details to the client.
+      const errBody = await aiResponse.text();
+      console.error(`OpenRouter error ${aiResponse.status}:`, errBody);
       throw new Error("AI gateway error");
     }
 

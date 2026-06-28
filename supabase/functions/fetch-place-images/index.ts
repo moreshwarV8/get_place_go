@@ -1,3 +1,12 @@
+// ============================================================================
+// DEPRECATED / RETIRED — DO NOT DEPLOY.
+// This function generated place "photos" with an LLM image model. Those images
+// are hallucinated/fake representations of real establishments, which is
+// misleading for a product users rely on. It has been retired in favor of REAL
+// photos sourced from the Google Places API (see the `enrich-place` function /
+// Phase B of the project plan). Kept in the repo for reference only.
+// ============================================================================
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 

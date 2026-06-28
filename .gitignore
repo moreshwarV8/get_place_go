@@ -49,3 +49,9 @@ Thumbs.db
 
 # Local AI working notes (kept out of the repo)
 CLAUDE.md
+
+# Private project docs — never push to ANY remote
+docs/PRESENTATION.md
+docs/BLACKBOOK_Installation_and_Uninstallation.md
+docs/DEMO_COMPARISON.md
+docs/RESEARCH_PAPER.md
